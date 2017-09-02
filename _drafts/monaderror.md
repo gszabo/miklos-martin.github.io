@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Handlig monadic errors"
+title: "Handling monadic errors"
 categories: learn fp
 ---
 
@@ -124,7 +124,7 @@ Conversations about code like this become tricky very quickly.
 
 ## Fear not, there is a way out!
 
-There is a typeclass, called `ApplicativeError`. This extends `Applicative` with capabilities for dealing with errrors. The two main functions are `raiseError` and `handleErrorWith`. The first is like `pure`, but for errors, it lifts an error value to the context of `F`. The latter is responsible for handling errors, potentially recovering from it.
+There is a typeclass, called `ApplicativeError`. This extends `Applicative` with capabilities for dealing with errors. The two main functions are `raiseError` and `handleErrorWith`. The first is like `pure`, but for errors, it lifts an error value to the context of `F`. The latter is responsible for handling errors, potentially recovering from it.
 
 Here are their signatures:
 
@@ -181,7 +181,7 @@ def updateUser[F[_] : Database](userId: Int, newName: String)(implicit me: Monad
 } yield updated
 ```
 
-Note what we return from `updateUser`, it is just an `F[User]` which can be perfectly used as a `Monad` alone, a non-nested, transformer-free simple `Monad`. Which also happens to know about errors, so if we use this with a `Future` as `F`, then no additional recovery steps are neccessary.
+Note what we return from `updateUser`, it is just an `F[User]` which can be perfectly used as a `Monad` alone, a non-nested, transformer-free simple `Monad`. Which also happens to know about errors, so if we use this with a `Future` as `F`, then no additional recovery steps are necessary.
 
 For those who worry about the current signature of `updateUser`, it is extremely unlikely that you want to use the functions provided by the typeclass with mixed type constructors in the same scope, so you can safely move your type parameters and implicit evidences to a class constructor for example.
 
@@ -199,7 +199,7 @@ class UserStuff[F[_] : Database](implicit me: MonadError[F, Throwable]) {
 }
 ```
 
-But what happens to `Id`, you may ask. Well, `Id` is gone. We can no longer use it in our synchronous implementation for testing, we have to swap that one out for something binary, a datatype that can handle two cases, say, an `Either` or a `Try`. But that's OK, it is far less pain then the complexity and the transformations before.
+But what happens to `Id`, you may ask. Well, `Id` is gone. We can no longer use it in our synchronous implementation for testing, we have to swap that one out for something binary, a data type that can handle two cases, say, an `Either` or a `Try`. But that's OK, it is far less pain then the complexity and the transformations before.
 
 And, to use some more implicit magic, we can do something cool.
 
@@ -229,6 +229,6 @@ updateUser(1, "John")
   .logInfo(u => s"Successfully updated user: $u")
 ```
 
-So, whenever you find yourself wrapping `Either` or `Try` in parametrized type constructors just to deal with errors, I strongly encourage you try `MonadError` instead. It's just so much simpler to deal with.
+So, whenever you find yourself wrapping `Either` or `Try` in parameterized type constructors just to deal with errors, I strongly encourage you try `MonadError` instead. It's just so much simpler to deal with.
 
 [last post]: /learn/fp/2017/08/31/typeclasses-roll-your-own.html
