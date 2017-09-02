@@ -133,3 +133,6 @@ logFailure
 msg
 logInfo
 html
+handleError
+UserStuff
+parameterized
