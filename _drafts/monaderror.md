@@ -160,6 +160,7 @@ object Database {
 }
 
 import cats.MonadError
+import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.applicativeError._
 import Database.syntax._
@@ -175,13 +176,14 @@ def updateWithLog[F[_] : Database](userId: Int, newName: String)(implicit me: Mo
       me.raiseError(error)
     }
 
-def updateUser[F[_] : Database](userId: Int, newName: String)(implicit me: MonadError[F, Throwable]): F[User] = for {
-  user: User <- load(userId)
-  updated <- save(user.copy(name = newName))
+def updateUser[F[_] : Database : Monad](userId: Int, newName: String)(implicit me: MonadError[F, Throwable]): F[User] = for {
+  user <- load(userId)
+  updated = user.copy(name = newName)
+  _ <- save(updated)
 } yield updated
 ```
 
-Note what we return from `updateUser`, it is just an `F[User]` which can be perfectly used as a `Monad` alone, a non-nested, transformer-free simple `Monad`. Which also happens to know about errors, so if we use this with a `Future` as `F`, then no additional recovery steps are necessary.
+Note what we return from the `Database`, it is just an `F[User]` which can be perfectly used as a `Monad` alone, a non-nested, transformer-free simple `Monad`. Which also happens to know about errors, so if we use this with a `Future` as `F`, then no additional recovery steps are necessary.
 
 For those who worry about the current signature of `updateUser`, it is extremely unlikely that you want to use the functions provided by the typeclass with mixed type constructors in the same scope, so you can safely move your type parameters and implicit evidences to a class constructor for example.
 
