@@ -176,7 +176,7 @@ def updateWithLog[F[_] : Database](userId: Int, newName: String)(implicit me: Mo
       me.raiseError(error)
     }
 
-def updateUser[F[_] : Database : Monad](userId: Int, newName: String)(implicit me: MonadError[F, Throwable]): F[User] = for {
+def updateUser[F[_] : Database](userId: Int, newName: String)(implicit me: MonadError[F, Throwable]): F[User] = for {
   user <- load(userId)
   updated = user.copy(name = newName)
   _ <- save(updated)
